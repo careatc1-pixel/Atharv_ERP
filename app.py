@@ -1,13 +1,11 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, make_response
 from flask_sqlalchemy import SQLAlchemy
-import pandas as pd
-from io import BytesIO
-from xhtml2pdf import pisa
+from fpdf import FPDF
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "atharv_tech_pro_key_2026"
+app.secret_key = "atharv_tech_final_safe_key"
 
 # Database Configuration
 current_dir = os.path.abspath(os.path.dirname(__file__))
@@ -35,36 +33,23 @@ class Client(db.Model):
 with app.app_context():
     db.create_all()
 
-# Admin Credentials
 ADMIN_EMAIL = "care.atc1@gmail.com"
 ADMIN_PASSWORD = "Atharv$321"
 
-# --- PDF GENERATOR FUNCTION ---
-def create_pdf(html):
-    result = BytesIO()
-    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
-    if not pdf.err:
-        return result.getvalue()
-    return None
-
 @app.route('/')
-def index():
-    return render_template('index.html')
+def index(): return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        if request.form.get('email') == ADMIN_EMAIL and request.form.get('password') == ADMIN_PASSWORD:
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
     return render_template('login.html')
 
 @app.route('/admin')
 def admin_dashboard():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('login'))
+    if not session.get('admin_logged_in'): return redirect(url_for('login'))
     clients = Client.query.all()
     return render_template('admin.html', clients=clients, now=datetime.now())
 
@@ -97,9 +82,25 @@ def download_invoice(id):
     client = Client.query.get(id)
     gst_amt = round(client.total_bill * 0.18, 2)
     grand_total = client.total_bill + gst_amt
-    html = render_template('invoice_pdf.html', client=client, gst=gst_amt, total=grand_total, date=datetime.now().strftime('%d-%m-%Y'))
-    pdf = create_pdf(html)
-    response = make_response(pdf)
+    
+    # FPDF logic to create Invoice
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, "TAX INVOICE - Atharv Tech Co.", ln=True, align='C')
+    pdf.ln(10)
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, f"Client: {client.company_name}", ln=True)
+    pdf.cell(200, 10, f"Address: {client.address}", ln=True)
+    pdf.cell(200, 10, f"GSTIN: {client.gst_number}", ln=True)
+    pdf.ln(10)
+    pdf.cell(200, 10, f"Project: {client.project_name}", ln=True)
+    pdf.cell(200, 10, f"Base Amount: Rs. {client.total_bill}", ln=True)
+    pdf.cell(200, 10, f"GST (18%): Rs. {gst_amt}", ln=True)
+    pdf.set_font("Arial", 'B', 14)
+    pdf.cell(200, 10, f"Total Amount: Rs. {grand_total}", ln=True)
+    
+    response = make_response(pdf.output(dest='S').encode('latin-1'))
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=Invoice_{client.name}.pdf'
     return response
