@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 import os
 
-# Render ke liye folder path set karna
 current_dir = os.path.abspath(os.path.dirname(__file__))
 template_dir = os.path.join(current_dir, 'templates')
 
@@ -40,6 +39,7 @@ def admin_dashboard():
     clients = Client.query.all()
     return render_template('admin.html', clients=clients)
 
+# --- 1. BULK UPLOAD LOGIC ---
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
@@ -57,6 +57,20 @@ def upload_file():
         db.session.commit()
     return redirect(url_for('admin_dashboard'))
 
+# --- 2. SINGLE CLIENT ADDITION LOGIC ---
+@app.route('/add-single', methods=['POST'])
+def add_single():
+    name = request.form.get('name')
+    email = request.form.get('email')
+    project = request.form.get('project')
+    bill = request.form.get('bill', 0)
+
+    if not Client.query.filter_by(email=email).first():
+        new_client = Client(name=name, email=email, project_name=project, total_bill=bill)
+        db.session.add(new_client)
+        db.session.commit()
+    return redirect(url_for('admin_dashboard'))
+
 @app.route('/update/<int:id>', methods=['POST'])
 def update_client(id):
     client = Client.query.get(id)
@@ -65,14 +79,4 @@ def update_client(id):
     db.session.commit()
     return redirect(url_for('admin_dashboard'))
 
-@app.route('/client-check', methods=['POST'])
-def client_check():
-    email = request.form.get('email')
-    client = Client.query.filter_by(email=email).first()
-    if client:
-        return render_template('client_view.html', client=client)
-    return "Email not found! Please contact Atharv Tech Co."
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+@app.route('/client-check
