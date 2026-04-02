@@ -3,49 +3,40 @@ import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, session, send_file, make_response
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
-from datetime import datetime
 from io import BytesIO
 
 app = Flask(__name__)
-app.secret_key = "atharv_pro_max_2026"
+app.secret_key = "atharv_tech_client_module_2026"
 
 # Database
 current_dir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(current_dir, 'atharv_erp.db'))
 db = SQLAlchemy(app)
 
-# Models
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name, company = db.Column(db.String(100)), db.Column(db.String(150))
-    contact, email = db.Column(db.String(20)), db.Column(db.String(100), unique=True)
-    address, gstin = db.Column(db.Text), db.Column(db.String(20))
-
-class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    doc_no = db.Column(db.String(50)) # INV-001 or REC-001
-    client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
-    type = db.Column(db.String(20)) # 'Invoice' or 'Payment'
-    amount = db.Column(db.Float)
-    gst_amt, discount = db.Column(db.Float, default=0.0), db.Column(db.Float, default=0.0)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-    details = db.Column(db.JSON) # Multiple Services stored here
+    name = db.Column(db.String(100))
+    company = db.Column(db.String(150))
+    contact = db.Column(db.String(20))
+    email = db.Column(db.String(100), unique=True)
+    address = db.Column(db.Text)
+    gstin = db.Column(db.String(20))
 
 with app.app_context(): db.create_all()
 
-# --- ROUTES ---
 @app.route('/')
 def index():
     if not session.get('logged_in'): return render_template('login.html')
     clients = Client.query.all()
-    txs = Transaction.query.order_by(Transaction.date.desc()).all()
-    return render_template('admin.html', clients=clients, txs=txs)
+    return render_template('admin.html', clients=clients)
 
 @app.route('/login', methods=['POST'])
 def login():
     if request.form['email'] == "care.atc1@gmail.com" and request.form['password'] == "Atharv$321":
         session['logged_in'] = True
     return redirect(url_for('index'))
+
+# --- CLIENT ACTIONS ---
 
 @app.route('/add-client', methods=['POST'])
 def add_client():
@@ -54,73 +45,52 @@ def add_client():
     db.session.commit()
     return redirect(url_for('index'))
 
-@app.route('/create-bill', methods=['POST'])
-def create_bill():
-    services = request.form.getlist('service[]')
-    prices = request.form.getlist('price[]')
-    items = [{"service": s, "price": float(p)} for s, p in zip(services, prices)]
-    
-    subtotal = sum(item['price'] for item in items)
-    disc = float(request.form.get('discount', 0))
-    taxable = subtotal - disc
-    gst = round(taxable * 0.18, 2)
-    final = round(taxable + gst)
-    
-    inv_count = Transaction.query.filter_by(type='Invoice').count() + 1
-    t = Transaction(doc_no=f"ATC/INV/{inv_count:03d}", client_id=request.form['client_id'], type='Invoice', amount=final, gst_amt=gst, discount=disc, details=items)
-    db.session.add(t)
-    db.session.commit()
+@app.route('/bulk-upload', methods=['POST'])
+def bulk_upload():
+    file = request.files['file']
+    if file:
+        df = pd.read_excel(file)
+        for _, row in df.iterrows():
+            if not Client.query.filter_by(email=row['Email']).first():
+                c = Client(name=row['Name'], company=row['Company'], contact=row['Contact'], email=row['Email'], address=row['Address'], gstin=row.get('GSTIN', 'N/A'))
+                db.session.add(c)
+        db.session.commit()
     return redirect(url_for('index'))
 
-@app.route('/add-payment', methods=['POST'])
-def add_payment():
-    rec_count = Transaction.query.filter_by(type='Payment').count() + 1
-    t = Transaction(doc_no=f"ATC/REC/{rec_count:03d}", client_id=request.form['client_id'], type='Payment', amount=float(request.form['amount']), details=[{"note": request.form['note']}])
-    db.session.add(t)
-    db.session.commit()
-    return redirect(url_for('index'))
+@app.route('/export-excel')
+def export_excel():
+    clients = Client.query.all()
+    data = [{"Name": c.name, "Company": c.company, "Email": c.email, "Contact": c.contact, "GSTIN": c.gstin} for c in clients]
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Clients')
+    output.seek(0)
+    return send_file(output, as_attachment=True, download_name="Client_List.xlsx")
 
-@app.route('/download-doc/<int:tid>')
-def download_doc(tid):
-    t = Transaction.query.get(tid)
-    c = Client.query.get(t.client_id)
+@app.route('/export-pdf')
+def export_pdf():
+    clients = Client.query.all()
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(190, 10, "ATHARV TECH CO.", ln=True, align='C')
-    pdf.set_font("Arial", '', 10)
-    pdf.cell(190, 5, f"{t.type.upper()} NO: {t.doc_no} | DATE: {t.date.strftime('%d-%m-%Y')}", ln=True, align='C')
-    pdf.ln(10)
-    pdf.cell(100, 5, f"BILL TO: {c.company}")
-    pdf.ln(10)
-    
-    # Table for multiple items
+    pdf.set_font("Arial", 'B', 14)
+    pdf.cell(190, 10, "ATHARV TECH CO. - CLIENT LIST", ln=True, align='C')
     pdf.set_font("Arial", 'B', 10)
-    pdf.cell(140, 8, "Description", border=1)
-    pdf.cell(50, 8, "Amount", border=1, ln=True)
-    pdf.set_font("Arial", '', 10)
-    
-    if t.type == 'Invoice':
-        for item in t.details:
-            pdf.cell(140, 8, item['service'], border=1)
-            pdf.cell(50, 8, f"{item['price']}", border=1, ln=True)
-        pdf.ln(5)
-        pdf.cell(140, 8, "Discount:", align='R')
-        pdf.cell(50, 8, f"-{t.discount}", ln=True)
-        pdf.cell(140, 8, "GST (18%):", align='R')
-        pdf.cell(50, 8, f"+{t.gst_amt}", ln=True)
-    else:
-        pdf.cell(140, 8, f"Payment Received: {t.details[0].get('note','')}", border=1)
-        pdf.cell(50, 8, f"{t.amount}", border=1, ln=True)
-        
-    pdf.set_font("Arial", 'B', 12)
-    pdf.cell(140, 10, "GRAND TOTAL:", align='R')
-    pdf.cell(50, 10, f"Rs. {t.amount}", ln=True)
+    pdf.cell(40, 10, "Company", border=1)
+    pdf.cell(40, 10, "Name", border=1)
+    pdf.cell(60, 10, "Email", border=1)
+    pdf.cell(50, 10, "Contact", border=1, ln=True)
+    pdf.set_font("Arial", '', 9)
+    for c in clients:
+        pdf.cell(40, 10, str(c.company)[:20], border=1)
+        pdf.cell(40, 10, str(c.name)[:20], border=1)
+        pdf.cell(60, 10, str(c.email), border=1)
+        pdf.cell(50, 10, str(c.contact), border=1, ln=True)
     
     out = BytesIO()
     pdf.output(out)
     out.seek(0)
-    return send_file(out, as_attachment=True, download_name=f"{t.doc_no}.pdf", mimetype='application/pdf')
+    return send_file(out, as_attachment=True, download_name="Client_List.pdf", mimetype='application/pdf')
 
 @app.route('/logout')
 def logout():
