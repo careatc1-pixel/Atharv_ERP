@@ -1,1 +1,48 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Helvetica, sans-serif; padding: 20px; }
+        .header { text-align: right; color: #1a1a2e; }
+        .invoice-title { font-size: 30px; font-weight: bold; color: #0f3460; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        .table th, .table td { border-bottom: 1px solid #eee; padding: 12px; text-align: left; }
+        .total-box { margin-top: 40px; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="invoice-title">TAX INVOICE</div>
+        <p><strong>Atharv Tech Co.</strong><br>Est. 2023 | India</p>
+    </div>
+    <hr>
+    <div style="margin-top: 20px;">
+        <p><strong>Bill To:</strong><br>
+        {{ client.company_name }} ({{ client.name }})<br>
+        {{ client.address }}<br>
+        GSTIN: {{ client.gst_number }}</p>
+    </div>
+    <table class="table">
+        <thead>
+            <tr style="background-color: #f8f9fa;">
+                <th>Description</th>
+                <th>Base Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ client.project_name }} Services</td>
+                <td>₹{{ client.total_bill }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="total-box">
+        <p>Subtotal: ₹{{ client.total_bill }}</p>
+        <p>GST (18%): ₹{{ gst }}</p>
+        <h2 style="color: #0f3460;">Grand Total: ₹{{ total }}</h2>
+    </div>
+    <div style="margin-top: 50px; font-size: 10px; color: grey;">
+        *This is a computer-generated invoice and does not require a physical signature.
+    </div>
+</body>
+</html>
