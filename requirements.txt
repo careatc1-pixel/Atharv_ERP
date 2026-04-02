@@ -3,4 +3,4 @@ pandas
 openpyxl
 flask-sqlalchemy
 gunicorn
-xhtml2pdf
+fpdf
