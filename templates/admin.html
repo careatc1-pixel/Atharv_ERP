@@ -1,60 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Atharv ERP Pro</title>
+    <title>Atharv Tech ERP Pro</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .sidebar { width: 260px; height: 100vh; position: fixed; background: #1a1a2e; color: white; padding: 20px; }
-        .content { margin-left: 260px; padding: 40px; background: #f8f9fa; min-height: 100vh; }
-        .nav-link { color: #a2a2a2; margin: 10px 0; border-radius: 8px; }
-        .nav-link.active { background: #0f3460; color: white; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .content { margin-left: 260px; padding: 30px; background: #f8f9fa; min-height: 100vh; }
+        .nav-link { color: #a2a2a2; margin: 10px 0; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
+        .nav-link.active { background: #0f3460; color: white; border-radius: 8px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h4 class="text-center mb-4 text-info">ATHARV TECH CO.</h4>
+    <div class="sidebar shadow">
+        <h4 class="text-center mb-4 text-info">ATHARV TECH</h4>
         <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
-            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab1"><i class="fas fa-user-plus me-2"></i> Client Onboarding</button>
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab2"><i class="fas fa-file-invoice-dollar me-2"></i> Billing & GST</button>
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab3"><i class="fas fa-book me-2"></i> Vendor Ledger</button>
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab4"><i class="fas fa-hand-holding-usd me-2"></i> Payments</button>
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#onboard"><i class="fas fa-user-plus me-2"></i> Onboarding</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#billing"><i class="fas fa-file-invoice me-2"></i> Billing & GST</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#ledger"><i class="fas fa-list me-2"></i> Ledger</button>
             <a href="/logout" class="nav-link text-danger mt-5"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
         </div>
     </div>
 
     <div class="content">
         <div class="tab-content">
-            <div class="tab-pane fade show active" id="tab1">
-                <h3>Detailed Client Onboarding</h3>
+            <div class="tab-pane fade show active" id="onboard">
+                <h3>New Client Entry</h3>
                 <div class="card p-4 mt-3">
                     <form action="/add-client" method="POST" class="row g-3">
                         <div class="col-md-4"><input type="text" name="name" class="form-control" placeholder="Client Name" required></div>
                         <div class="col-md-4"><input type="text" name="company" class="form-control" placeholder="Company Name"></div>
-                        <div class="col-md-4"><input type="text" name="contact" class="form-control" placeholder="Contact No"></div>
-                        <div class="col-md-4"><input type="email" name="email" class="form-control" placeholder="Email ID"></div>
+                        <div class="col-md-4"><input type="text" name="contact" class="form-control" placeholder="Phone No"></div>
+                        <div class="col-md-4"><input type="email" name="email" class="form-control" placeholder="Email"></div>
                         <div class="col-md-4"><input type="text" name="gst" class="form-control" placeholder="GST Number"></div>
                         <div class="col-md-4"><input type="text" name="project" class="form-control" placeholder="Project Name"></div>
-                        <div class="col-md-8"><textarea name="address" class="form-control" placeholder="Full Address"></textarea></div>
-                        <div class="col-md-4"><input type="number" name="bill" class="form-control" placeholder="Base Bill Amount (₹)"></div>
-                        <div class="col-12"><button class="btn btn-primary w-100 shadow">Save & Onboard Client</button></div>
+                        <div class="col-md-8"><input type="text" name="address" class="form-control" placeholder="Full Address"></div>
+                        <div class="col-md-4"><input type="number" name="bill" class="form-control" placeholder="Bill Amount (₹)"></div>
+                        <div class="col-12"><button class="btn btn-primary w-100">Save Client</button></div>
                     </form>
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="tab2">
-                <h3>Billing & GST Invoices</h3>
-                <div class="card mt-3 table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light"><tr><th>Company</th><th>Base Amt</th><th>GST (18%)</th><th>Action</th></tr></thead>
+            <div class="tab-pane fade" id="billing">
+                <h3>Billing & Progress</h3>
+                <div class="card mt-3 p-3">
+                    <table class="table align-middle">
+                        <thead><tr><th>Company</th><th>Progress</th><th>Bill</th><th>Invoice</th></tr></thead>
                         <tbody>
                             {% for client in clients %}
                             <tr>
-                                <td><strong>{{ client.company_name }}</strong><br><small>{{ client.name }}</small></td>
+                                <td>{{ client.company_name }}</td>
+                                <td>
+                                    <form action="/update-client/{{client.id}}" method="POST" class="d-flex">
+                                        <input type="number" name="progress" value="{{client.progress}}" class="form-control form-control-sm w-50 me-2">
+                                        <button class="btn btn-sm btn-success">Update</button>
+                                        <input type="hidden" name="paid" value="{{client.paid_amount}}">
+                                    </form>
+                                </td>
                                 <td>₹{{ client.total_bill }}</td>
-                                <td>₹{{ client.total_bill * 0.18 }}</td>
-                                <td><a href="/download-invoice/{{client.id}}" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf"></i> Download Invoice</a></td>
+                                <td><a href="/download-invoice/{{client.id}}" class="btn btn-sm btn-outline-danger">PDF</a></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -62,18 +67,23 @@
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="tab3">
-                <h3>Client Ledger (Statements)</h3>
+            <div class="tab-pane fade" id="ledger">
+                <h3>Business Ledger</h3>
                 <div class="card mt-3 p-3">
                     <table class="table table-bordered">
-                        <thead class="table-dark"><tr><th>Date</th><th>Client/Vendor</th><th>Total Bill (incl. GST)</th><th>Paid</th><th>Balance</th></tr></thead>
+                        <thead class="table-dark"><tr><th>Client</th><th>Total (with GST)</th><th>Paid</th><th>Due</th></tr></thead>
                         <tbody>
                             {% for client in clients %}
                             <tr>
-                                <td>{{ now.strftime('%b %Y') }}</td>
                                 <td>{{ client.company_name }}</td>
                                 <td>₹{{ client.total_bill * 1.18 }}</td>
-                                <td class="text-success">₹{{ client.paid_amount }}</td>
+                                <td>
+                                    <form action="/update-client/{{client.id}}" method="POST" class="d-flex">
+                                        <input type="number" name="paid" value="{{client.paid_amount}}" class="form-control form-control-sm w-75 me-2">
+                                        <button class="btn btn-sm btn-info">Pay</button>
+                                        <input type="hidden" name="progress" value="{{client.progress}}">
+                                    </form>
+                                </td>
                                 <td class="text-danger font-weight-bold">₹{{ (client.total_bill * 1.18) - client.paid_amount }}</td>
                             </tr>
                             {% endfor %}
