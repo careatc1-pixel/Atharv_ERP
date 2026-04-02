@@ -38,7 +38,7 @@ ADMIN_PASSWORD = "Atharv$321"
 def index():
     return render_template('index.html')
 
-# Login Page Route
+# --- ADMIN LOGIN/LOGOUT ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -47,16 +47,32 @@ def login():
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
-        else:
-            return "<h3 style='color:red; text-align:center;'>Galt Details! Sahi Email/Password dalein.</h3><br><center><a href='/login'>Wapas Jayein</a></center>"
+        return "<h3>Invalid Admin Credentials</h3><a href='/login'>Try Again</a>"
     return render_template('login.html')
+
+# --- CLIENT LOGIN/LOGOUT ---
+@app.route('/client-login', methods=['POST'])
+def client_login():
+    email = request.form.get('email')
+    client = Client.query.filter_by(email=email).first()
+    if client:
+        session['client_id'] = client.id
+        return redirect(url_for('client_dashboard'))
+    return "<h3>Email Not Registered!</h3><a href='/'>Back to Home</a>"
+
+@app.route('/client-dashboard')
+def client_dashboard():
+    if 'client_id' not in session:
+        return redirect(url_for('index'))
+    client = Client.query.get(session['client_id'])
+    return render_template('client_view.html', client=client)
 
 @app.route('/logout')
 def logout():
-    session.pop('admin_logged_in', None)
+    session.clear()
     return redirect(url_for('index'))
 
-# Protected Admin Dashboard
+# --- ADMIN PROTECTED ROUTES ---
 @app.route('/admin')
 def admin_dashboard():
     if not session.get('admin_logged_in'):
@@ -80,10 +96,8 @@ def upload_file():
 @app.route('/add-single', methods=['POST'])
 def add_single():
     if not session.get('admin_logged_in'): return redirect(url_for('login'))
-    name = request.form.get('name')
-    email = request.form.get('email')
-    project = request.form.get('project')
-    bill = request.form.get('bill', 0)
+    name, email = request.form.get('name'), request.form.get('email')
+    project, bill = request.form.get('project'), request.form.get('bill', 0)
     if not Client.query.filter_by(email=email).first():
         new_client = Client(name=name, email=email, project_name=project, total_bill=bill)
         db.session.add(new_client)
@@ -98,14 +112,6 @@ def update_client(id):
     client.paid_amount = request.form.get('paid')
     db.session.commit()
     return redirect(url_for('admin_dashboard'))
-
-@app.route('/client-check', methods=['POST'])
-def client_check():
-    email = request.form.get('email')
-    client = Client.query.filter_by(email=email).first()
-    if client:
-        return render_template('client_view.html', client=client)
-    return "<h1>Email Nahi Mila! Atharv Tech Co. se sampark karein.</h1><a href='/'>Wapas</a>"
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
