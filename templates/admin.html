@@ -1,74 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Panel | Atharv Tech Co.</title>
+    <title>Admin | Atharv Tech</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --sidebar-width: 260px; --primary-dark: #1a1a2e; }
-        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; background: var(--primary-dark); color: white; padding: 20px; z-index: 1000; }
-        .main-content { margin-left: var(--sidebar-width); padding: 40px; }
-        .nav-link { color: #a2a2a2; margin-bottom: 10px; border-radius: 10px; transition: 0.3s; border: none; background: none; width: 100%; text-align: left; }
-        .nav-link:hover, .nav-link.active { background: #16213e; color: #48dbfb !important; shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .card { border: none; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        .stat-card { background: linear-gradient(45deg, #1a1a2e, #16213e); color: white; border-left: 5px solid #48dbfb; }
+        .sidebar { width: 250px; height: 100vh; position: fixed; background: #1a1a2e; color: white; padding: 20px; }
+        .content { margin-left: 250px; padding: 30px; background: #f8f9fa; min-height: 100vh; }
+        .nav-link { color: #a2a2a2; margin-bottom: 10px; border: none; background: none; width: 100%; text-align: left; }
+        .nav-link.active { background: #0f3460; color: white; border-radius: 8px; }
     </style>
 </head>
 <body>
-
-    <div class="sidebar shadow">
-        <div class="text-center mb-5">
-            <h4 class="text-info font-weight-bold">ATHARV TECH</h4>
-            <p class="small text-muted">Business ERP v2.0</p>
-        </div>
-        <div class="nav flex-column nav-pills" id="adminTabs" role="tablist">
-            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-onboard"><i class="fas fa-user-plus me-2"></i> Client Onboarding</button>
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-track"><i class="fas fa-tasks me-2"></i> Project Tracking</button>
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-ledger"><i class="fas fa-book-open me-2"></i> Business Ledger</button>
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-billing"><i class="fas fa-file-invoice-dollar me-2"></i> Billing & GST</button>
+    <div class="sidebar">
+        <h4 class="text-info text-center mb-4">ATHARV TECH</h4>
+        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-onboard"><i class="fas fa-plus me-2"></i> Onboarding</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-track"><i class="fas fa-tasks me-2"></i> Tracking</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-ledger"><i class="fas fa-book me-2"></i> Ledger</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bill"><i class="fas fa-file-invoice me-2"></i> Billing</button>
             <a href="/logout" class="nav-link text-danger mt-5"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
         </div>
     </div>
-
-    <div class="main-content">
-        <div class="tab-content" id="pills-tabContent">
-            
+    <div class="content">
+        <div class="tab-content">
             <div class="tab-pane fade show active" id="tab-onboard">
-                <h3 class="mb-4">Detailed Client Onboarding</h3>
-                <div class="card p-4">
+                <h3>New Client Entry</h3>
+                <div class="card p-4 shadow-sm">
                     <form action="/add-client" method="POST" class="row g-3">
-                        <div class="col-md-4"><label class="small">Client Name</label><input type="text" name="name" class="form-control" required></div>
-                        <div class="col-md-4"><label class="small">Company Name</label><input type="text" name="company" class="form-control" required></div>
-                        <div class="col-md-4"><label class="small">Contact No.</label><input type="text" name="contact" class="form-control"></div>
-                        <div class="col-md-4"><label class="small">Email ID</label><input type="email" name="email" class="form-control"></div>
-                        <div class="col-md-4"><label class="small">GST Number</label><input type="text" name="gst" class="form-control" placeholder="Optional"></div>
-                        <div class="col-md-4"><label class="small">Project Name</label><input type="text" name="project" class="form-control"></div>
-                        <div class="col-md-8"><label class="small">Office Address</label><input type="text" name="address" class="form-control"></div>
-                        <div class="col-md-4"><label class="small">Base Bill Amount (Rs.)</label><input type="number" name="bill" class="form-control"></div>
-                        <div class="col-12 mt-4"><button type="submit" class="btn btn-primary w-100 py-2 shadow">Register & Onboard Client</button></div>
+                        <div class="col-md-4"><input type="text" name="name" class="form-control" placeholder="Name" required></div>
+                        <div class="col-md-4"><input type="text" name="company" class="form-control" placeholder="Company" required></div>
+                        <div class="col-md-4"><input type="text" name="contact" class="form-control" placeholder="Phone"></div>
+                        <div class="col-md-4"><input type="email" name="email" class="form-control" placeholder="Email"></div>
+                        <div class="col-md-4"><input type="text" name="gst" class="form-control" placeholder="GST No"></div>
+                        <div class="col-md-4"><input type="text" name="project" class="form-control" placeholder="Project"></div>
+                        <div class="col-md-8"><input type="text" name="address" class="form-control" placeholder="Address"></div>
+                        <div class="col-md-4"><input type="number" name="bill" class="form-control" placeholder="Bill Amount"></div>
+                        <button type="submit" class="btn btn-primary">Onboard Client</button>
                     </form>
                 </div>
             </div>
-
             <div class="tab-pane fade" id="tab-track">
-                <h3 class="mb-4">Project Progress Tracking</h3>
-                <div class="card p-3 table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light"><tr><th>Company</th><th>Project</th><th>Progress</th><th>Action</th></tr></thead>
+                <h3>Project Progress</h3>
+                <div class="card p-3 shadow-sm mt-3">
+                    <table class="table table-hover">
+                        <thead><tr><th>Company</th><th>Progress %</th><th>Action</th></tr></thead>
                         <tbody>
                             {% for client in clients %}
                             <tr>
-                                <td><strong>{{ client.company_name }}</strong></td>
-                                <td>{{ client.project_name }}</td>
-                                <td width="300">
-                                    <div class="progress mb-1" style="height: 8px;"><div class="progress-bar bg-info" style="width: {{client.progress}}%"></div></div>
-                                    <small>{{client.progress}}% Complete</small>
-                                </td>
+                                <td>{{ client.company_name }}</td>
+                                <td><div class="progress" style="height: 10px;"><div class="progress-bar bg-info" style="width: {{client.progress}}%"></div></div></td>
                                 <td>
                                     <form action="/update-client/{{client.id}}" method="POST" class="d-flex">
-                                        <input type="number" name="progress" class="form-control form-control-sm me-2" value="{{client.progress}}" style="width: 70px;">
+                                        <input type="number" name="progress" value="{{client.progress}}" class="form-control form-control-sm w-50 me-2">
                                         <input type="hidden" name="paid" value="{{client.paid_amount}}">
                                         <button class="btn btn-sm btn-dark">Update</button>
                                     </form>
@@ -79,22 +63,21 @@
                     </table>
                 </div>
             </div>
-
             <div class="tab-pane fade" id="tab-ledger">
-                <h3 class="mb-4">Client Wise Ledger (Statement)</h3>
-                <div class="card p-3">
-                    <table class="table table-bordered text-center">
-                        <thead class="table-dark"><tr><th>Client Name</th><th>Total (Base + 18% GST)</th><th>Amount Paid</th><th>Balance Due</th><th>Quick Pay</th></tr></thead>
+                <h3>Business Ledger</h3>
+                <div class="card p-3 shadow-sm mt-3">
+                    <table class="table table-bordered">
+                        <thead class="table-dark"><tr><th>Client</th><th>Total Bill (+GST)</th><th>Paid</th><th>Due</th><th>Pay Now</th></tr></thead>
                         <tbody>
                             {% for client in clients %}
                             <tr>
                                 <td>{{ client.company_name }}</td>
                                 <td>Rs. {{ (client.total_bill * 1.18)|round(2) }}</td>
-                                <td class="text-success font-weight-bold">Rs. {{ client.paid_amount }}</td>
-                                <td class="text-danger font-weight-bold">Rs. {{ ((client.total_bill * 1.18) - client.paid_amount)|round(2) }}</td>
+                                <td class="text-success">Rs. {{ client.paid_amount }}</td>
+                                <td class="text-danger">Rs. {{ ((client.total_bill * 1.18) - client.paid_amount)|round(2) }}</td>
                                 <td>
-                                    <form action="/update-client/{{client.id}}" method="POST" class="d-flex justify-content-center">
-                                        <input type="number" name="paid" class="form-control form-control-sm me-2" value="{{client.paid_amount}}" style="width: 100px;">
+                                    <form action="/update-client/{{client.id}}" method="POST" class="d-flex">
+                                        <input type="number" name="paid" value="{{client.paid_amount}}" class="form-control form-control-sm w-75 me-1">
                                         <input type="hidden" name="progress" value="{{client.progress}}">
                                         <button class="btn btn-sm btn-success">Save</button>
                                     </form>
@@ -105,26 +88,20 @@
                     </table>
                 </div>
             </div>
-
-            <div class="tab-pane fade" id="tab-billing">
-                <h3 class="mb-4">Billing & GST Invoice Center</h3>
-                <div class="row">
+            <div class="tab-pane fade" id="tab-bill">
+                <h3>Billing & GST</h3>
+                <div class="row mt-3">
                     {% for client in clients %}
-                    <div class="col-md-4 mb-3">
-                        <div class="card p-3 border-start border-primary border-4 shadow-sm">
-                            <h5>{{ client.company_name }}</h5>
-                            <p class="small text-muted mb-1">Project: {{ client.project_name }}</p>
-                            <p class="mb-3 text-dark"><strong>Invoice Val: Rs. {{ (client.total_bill * 1.18)|round(2) }}</strong></p>
-                            <a href="/download-invoice/{{client.id}}" class="btn btn-outline-danger btn-sm w-100"><i class="fas fa-file-pdf me-1"></i> Generate GST Invoice</a>
-                        </div>
-                    </div>
+                    <div class="col-md-4"><div class="card p-3 mb-3 border-primary shadow-sm">
+                        <h5>{{ client.company_name }}</h5>
+                        <p class="small text-muted">Bill: Rs. {{ (client.total_bill * 1.18)|round(2) }}</p>
+                        <a href="/download-invoice/{{client.id}}" class="btn btn-outline-danger btn-sm w-100">Download Invoice</a>
+                    </div></div>
                     {% endfor %}
                 </div>
             </div>
-
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
