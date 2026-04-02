@@ -1,139 +1,131 @@
 import os
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session, make_response, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, send_file, make_response
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
 from datetime import datetime
 from io import BytesIO
 
 app = Flask(__name__)
-app.secret_key = "atharv_tech_ultimate_2026"
+app.secret_key = "atharv_pro_max_2026"
 
-# Database Config
+# Database
 current_dir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(current_dir, 'atharv_erp.db'))
 db = SQLAlchemy(app)
 
-# Detailed Models
+# Models
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    company = db.Column(db.String(150))
-    contact = db.Column(db.String(20))
-    email = db.Column(db.String(100), unique=True)
-    address = db.Column(db.Text)
-    gstin = db.Column(db.String(20))
+    name, company = db.Column(db.String(100)), db.Column(db.String(150))
+    contact, email = db.Column(db.String(20)), db.Column(db.String(100), unique=True)
+    address, gstin = db.Column(db.Text), db.Column(db.String(20))
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    doc_no = db.Column(db.String(50)) # INV-001 or REC-001
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     type = db.Column(db.String(20)) # 'Invoice' or 'Payment'
     amount = db.Column(db.Float)
+    gst_amt, discount = db.Column(db.Float, default=0.0), db.Column(db.Float, default=0.0)
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    description = db.Column(db.String(200))
-    gst_amt = db.Column(db.Float, default=0.0)
-    discount = db.Column(db.Float, default=0.0)
+    details = db.Column(db.JSON) # Multiple Services stored here
 
-with app.app_context():
-    db.create_all()
+with app.app_context(): db.create_all()
 
-ADMIN_EMAIL = "care.atc1@gmail.com"
-ADMIN_PASSWORD = "Atharv$321"
-
-# --- MIDDLEWARE: AUTH ---
-def is_logged(): return session.get('logged_in')
-
+# --- ROUTES ---
 @app.route('/')
 def index():
-    if not is_logged(): return render_template('login.html')
-    return redirect(url_for('admin_dashboard'))
+    if not session.get('logged_in'): return render_template('login.html')
+    clients = Client.query.all()
+    txs = Transaction.query.order_by(Transaction.date.desc()).all()
+    return render_template('admin.html', clients=clients, txs=txs)
 
 @app.route('/login', methods=['POST'])
 def login():
-    if request.form.get('email') == ADMIN_EMAIL and request.form.get('password') == ADMIN_PASSWORD:
+    if request.form['email'] == "care.atc1@gmail.com" and request.form['password'] == "Atharv$321":
         session['logged_in'] = True
     return redirect(url_for('index'))
 
-# --- CLIENTS: MANUAL & BULK ---
 @app.route('/add-client', methods=['POST'])
 def add_client():
-    new_c = Client(name=request.form['name'], company=request.form['company'], contact=request.form['contact'], email=request.form['email'], address=request.form['address'], gstin=request.form['gst'])
-    db.session.add(new_c)
+    c = Client(name=request.form['name'], company=request.form['company'], contact=request.form['contact'], email=request.form['email'], address=request.form['address'], gstin=request.form['gst'])
+    db.session.add(c)
     db.session.commit()
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('index'))
 
-@app.route('/bulk-upload', methods=['POST'])
-def bulk_upload():
-    file = request.files['file']
-    if file:
-        df = pd.read_excel(file)
-        for _, row in df.iterrows():
-            if not Client.query.filter_by(email=row['Email']).first():
-                c = Client(name=row['Name'], company=row['Company'], contact=row['Contact'], email=row['Email'], address=row['Address'], gstin=row.get('GSTIN', 'N/A'))
-                db.session.add(c)
-        db.session.commit()
-    return redirect(url_for('admin_dashboard'))
-
-# --- BILLING: GST, DISCOUNT, ROUND OFF ---
 @app.route('/create-bill', methods=['POST'])
 def create_bill():
-    client_id = request.form['client_id']
-    base = float(request.form['amount'])
+    services = request.form.getlist('service[]')
+    prices = request.form.getlist('price[]')
+    items = [{"service": s, "price": float(p)} for s, p in zip(services, prices)]
+    
+    subtotal = sum(item['price'] for item in items)
     disc = float(request.form.get('discount', 0))
-    gst_rate = float(request.form.get('gst_rate', 18))
+    taxable = subtotal - disc
+    gst = round(taxable * 0.18, 2)
+    final = round(taxable + gst)
     
-    taxable = base - disc
-    gst_amt = round(taxable * (gst_rate/100), 2)
-    final_total = round(taxable + gst_amt) # Auto Round Off
-    
-    t = Transaction(client_id=client_id, type='Invoice', amount=final_total, description=request.form['service'], gst_amt=gst_amt, discount=disc)
+    inv_count = Transaction.query.filter_by(type='Invoice').count() + 1
+    t = Transaction(doc_no=f"ATC/INV/{inv_count:03d}", client_id=request.form['client_id'], type='Invoice', amount=final, gst_amt=gst, discount=disc, details=items)
     db.session.add(t)
     db.session.commit()
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('index'))
 
-# --- PAYMENTS ---
 @app.route('/add-payment', methods=['POST'])
 def add_payment():
-    t = Transaction(client_id=request.form['client_id'], type='Payment', amount=float(request.form['amount']), description=request.form['note'])
+    rec_count = Transaction.query.filter_by(type='Payment').count() + 1
+    t = Transaction(doc_no=f"ATC/REC/{rec_count:03d}", client_id=request.form['client_id'], type='Payment', amount=float(request.form['amount']), details=[{"note": request.form['note']}])
     db.session.add(t)
     db.session.commit()
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('index'))
 
-# --- PDF ENGINE (AUTO-DOWNLOAD) ---
-@app.route('/download-invoice/<int:tid>')
-def download_invoice(tid):
+@app.route('/download-doc/<int:tid>')
+def download_doc(tid):
     t = Transaction.query.get(tid)
     c = Client.query.get(t.client_id)
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", 'B', 20)
-    pdf.cell(190, 20, "ATHARV TECH CO. - INVOICE", ln=True, align='C')
-    pdf.set_font("Arial", '', 12)
-    pdf.cell(100, 10, f"Bill To: {c.company}")
-    pdf.cell(90, 10, f"Date: {t.date.strftime('%d/%m/%Y')}", ln=True, align='R')
-    pdf.cell(190, 10, f"GSTIN: {c.gstin}", ln=True)
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(190, 10, "ATHARV TECH CO.", ln=True, align='C')
+    pdf.set_font("Arial", '', 10)
+    pdf.cell(190, 5, f"{t.type.upper()} NO: {t.doc_no} | DATE: {t.date.strftime('%d-%m-%Y')}", ln=True, align='C')
     pdf.ln(10)
-    pdf.cell(140, 10, "Description", border=1)
-    pdf.cell(50, 10, "Total (INR)", border=1, ln=True, align='R')
-    pdf.cell(140, 10, t.description, border=1)
-    pdf.cell(50, 10, f"{t.amount}", border=1, ln=True, align='R')
+    pdf.cell(100, 5, f"BILL TO: {c.company}")
+    pdf.ln(10)
+    
+    # Table for multiple items
+    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(140, 8, "Description", border=1)
+    pdf.cell(50, 8, "Amount", border=1, ln=True)
+    pdf.set_font("Arial", '', 10)
+    
+    if t.type == 'Invoice':
+        for item in t.details:
+            pdf.cell(140, 8, item['service'], border=1)
+            pdf.cell(50, 8, f"{item['price']}", border=1, ln=True)
+        pdf.ln(5)
+        pdf.cell(140, 8, "Discount:", align='R')
+        pdf.cell(50, 8, f"-{t.discount}", ln=True)
+        pdf.cell(140, 8, "GST (18%):", align='R')
+        pdf.cell(50, 8, f"+{t.gst_amt}", ln=True)
+    else:
+        pdf.cell(140, 8, f"Payment Received: {t.details[0].get('note','')}", border=1)
+        pdf.cell(50, 8, f"{t.amount}", border=1, ln=True)
+        
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(140, 10, "GRAND TOTAL:", align='R')
+    pdf.cell(50, 10, f"Rs. {t.amount}", ln=True)
     
     out = BytesIO()
     pdf.output(out)
     out.seek(0)
-    return send_file(out, as_attachment=True, download_name=f"Invoice_{c.company}_{tid}.pdf", mimetype='application/pdf')
-
-@app.route('/admin')
-def admin_dashboard():
-    if not is_logged(): return redirect(url_for('login'))
-    clients = Client.query.all()
-    txs = Transaction.query.all()
-    return render_template('admin.html', clients=clients, txs=txs)
+    return send_file(out, as_attachment=True, download_name=f"{t.doc_no}.pdf", mimetype='application/pdf')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
