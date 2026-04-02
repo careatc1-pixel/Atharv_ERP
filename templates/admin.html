@@ -1,98 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>ATC ERP | Client Module</title>
+    <title>ATC ERP | Professional Billing</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-size: 12px; background: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { width: 200px; height: 100vh; position: fixed; background: #1a1a2e; color: white; padding: 15px; }
-        .main { margin-left: 200px; padding: 20px; }
-        .nav-link { color: #8e8e93; font-size: 12px; padding: 10px; border-radius: 5px; }
-        .nav-link.active { background: #0d6efd; color: white; }
-        .card { border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .btn-xs { padding: 2px 5px; font-size: 10px; }
+        body { font-size: 13px; background: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: 220px; height: 100vh; position: fixed; background: #1a1a2e; color: white; padding: 20px; }
+        .main { margin-left: 220px; padding: 30px; }
+        .nav-link { color: #8e8e93; border:none; background:none; width:100%; text-align:left; padding: 10px; }
+        .nav-link.active { background: #0d6efd; color: white; border-radius: 5px; }
+        .card { border: none; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
-<div class="sidebar">
-    <h6 class="text-info text-center mb-4">ATC ERP v3.0</h6>
-    <div class="nav flex-column nav-pills">
-        <a href="#" class="nav-link active"><i class="fas fa-users me-2"></i> Client Module</a>
+<div class="sidebar shadow">
+    <h5 class="text-info text-center mb-4">ATC ERP v3.0</h5>
+    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-client"><i class="fas fa-users me-2"></i> Client Master</button>
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-billing"><i class="fas fa-file-invoice-dollar me-2"></i> Billing Center</button>
         <a href="/logout" class="nav-link text-danger mt-5"><i class="fas fa-power-off me-2"></i> Logout</a>
     </div>
 </div>
 
 <div class="main">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5>Client Management System</h5>
-        <div>
-            <a href="/export-excel" class="btn btn-sm btn-outline-success me-2"><i class="fas fa-file-excel"></i> Export Excel</a>
-            <a href="/export-pdf" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf"></i> Export PDF</a>
-        </div>
-    </div>
-
-    <div class="row g-3">
-        <div class="col-md-8">
-            <div class="card p-3 mb-3">
-                <h6>Manual Registration</h6>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-client">
+            <h3>Client Management</h3>
+            <div class="card p-3 mb-4">
                 <form action="/add-client" method="POST" class="row g-2">
-                    <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="Contact Name" required></div>
-                    <div class="col-md-4"><input type="text" name="company" class="form-control form-control-sm" placeholder="Company Name" required></div>
-                    <div class="col-md-4"><input type="email" name="email" class="form-control form-control-sm" placeholder="Email ID"></div>
-                    <div class="col-md-4"><input type="text" name="contact" class="form-control form-control-sm" placeholder="Phone"></div>
-                    <div class="col-md-4"><input type="text" name="gst" class="form-control form-control-sm" placeholder="GSTIN"></div>
-                    <div class="col-md-4"><input type="text" name="address" class="form-control form-control-sm" placeholder="Address"></div>
-                    <div class="col-12"><button class="btn btn-sm btn-primary w-100">Save Client</button></div>
+                    <div class="col-md-3"><input type="text" name="company" class="form-control form-control-sm" placeholder="Company Name" required></div>
+                    <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" placeholder="Contact Person"></div>
+                    <div class="col-md-3"><input type="email" name="email" class="form-control form-control-sm" placeholder="Email"></div>
+                    <div class="col-md-3"><input type="text" name="gst" class="form-control form-control-sm" placeholder="GSTIN"></div>
+                    <div class="col-md-9"><input type="text" name="address" class="form-control form-control-sm" placeholder="Address"></div>
+                    <div class="col-md-3"><button class="btn btn-sm btn-primary w-100">Add Client</button></div>
                 </form>
+            </div>
+            <div class="card p-2">
+                <table class="table table-sm table-hover">
+                    <thead class="table-dark"><tr><th>Company</th><th>GSTIN</th><th>Email</th><th>Contact</th></tr></thead>
+                    <tbody>
+                        {% for c in clients %}
+                        <tr><td>{{c.company}}</td><td>{{c.gstin}}</td><td>{{c.email}}</td><td>{{c.name}}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card p-3 mb-3">
-                <h6>Bulk Excel Upload</h6>
-                <form action="/bulk-upload" method="POST" enctype="multipart/form-data">
-                    <input type="file" name="file" class="form-control form-control-sm mb-2" required>
-                    <button class="btn btn-sm btn-success w-100">Upload & Sync</button>
+        <div class="tab-pane fade" id="tab-billing">
+            <h3>Professional Billing</h3>
+            <div class="card p-4 mb-4">
+                <form action="/generate-bill" method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label>Select Client</label>
+                            <select name="client_id" class="form-select form-select-sm">
+                                {% for c in clients %}<option value="{{c.id}}">{{c.company}} ({{c.gstin}})</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3"><label>Discount (Rs)</label><input type="number" name="discount" class="form-control form-control-sm" value="0"></div>
+                    </div>
+                    
+                    <div id="item-rows">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" placeholder="Service Description" required></div>
+                            <div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" placeholder="Price" required></div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-xs btn-outline-secondary mb-3" onclick="addRow()">+ Add More Service</button>
+                    <button class="btn btn-sm btn-success d-block w-100">Generate & Download Invoice</button>
                 </form>
-                <p class="text-muted mt-2 mb-0" style="font-size: 10px;">Columns: Name, Company, Email, Contact, Address, GSTIN</p>
+            </div>
+
+            <h6>Recent Invoices</h6>
+            <div class="card p-2 text-center">
+                <table class="table table-sm">
+                    <thead><tr><th>Inv No</th><th>Client</th><th>Date</th><th>Total</th><th>Action</th></tr></thead>
+                    <tbody>
+                        {% for inv in invoices %}
+                        <tr>
+                            <td>{{inv.invoice_no}}</td>
+                            <td>{{inv.client_id}}</td> <td>{{inv.date.strftime('%d-%m-%Y')}}</td>
+                            <td>Rs. {{inv.grand_total}}</td>
+                            <td><a href="/download-pdf/{{inv.id}}" class="btn btn-xs btn-danger">PDF</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
-
-    <div class="card p-2">
-        <h6 class="p-2 border-bottom">Registered Clients List</h6>
-        <table class="table table-sm table-hover mb-0">
-            <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Company Name</th>
-                    <th>Contact Person</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>GSTIN</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in clients %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td><strong>{{ c.company }}</strong></td>
-                    <td>{{ c.name }}</td>
-                    <td>{{ c.email }}</td>
-                    <td>{{ c.contact }}</td>
-                    <td>{{ c.gstin }}</td>
-                </tr>
-                {% endfor %}
-                {% if not clients %}
-                <tr><td colspan="6" class="text-center text-muted">No clients found. Add manually or via Excel.</td></tr>
-                {% endif %}
-            </tbody>
-        </table>
     </div>
 </div>
 
+<script>
+function addRow() {
+    const div = document.createElement('div');
+    div.className = 'row g-2 mb-2';
+    div.innerHTML = `
+        <div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" placeholder="Service Description" required></div>
+        <div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" placeholder="Price" required></div>
+    `;
+    document.getElementById('item-rows').appendChild(div);
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
