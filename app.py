@@ -1,21 +1,24 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, make_response
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
-import os
 from io import BytesIO
 from xhtml2pdf import pisa
 from datetime import datetime
 
-current_dir = os.path.abspath(os.path.dirname(__file__))
-app = Flask(__name__, template_folder=os.path.join(current_dir, 'templates'))
-app.secret_key = "atharv_tech_ultra_pro"
+app = Flask(__name__)
+app.secret_key = "atharv_tech_pro_key_2026"
 
-# Database Settings
+# Database Configuration
+current_dir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(current_dir, 'atharv_erp.db'))
+if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
+    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Detailed Client & Billing Model
+# Client Model
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -32,37 +35,39 @@ class Client(db.Model):
 with app.app_context():
     db.create_all()
 
+# Admin Credentials
 ADMIN_EMAIL = "care.atc1@gmail.com"
 ADMIN_PASSWORD = "Atharv$321"
 
-# --- HELPER: PDF GENERATOR ---
-def render_pdf(template_src, context_dict):
-    html = render_template(template_src, **context_dict)
+# --- PDF GENERATOR FUNCTION ---
+def create_pdf(html):
     result = BytesIO()
     pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
     if not pdf.err:
         return result.getvalue()
     return None
 
-# --- ROUTES ---
 @app.route('/')
-def index(): return render_template('index.html')
+def index():
+    return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        if request.form.get('email') == ADMIN_EMAIL and request.form.get('password') == ADMIN_PASSWORD:
+        email = request.form.get('email')
+        password = request.form.get('password')
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
     return render_template('login.html')
 
 @app.route('/admin')
 def admin_dashboard():
-    if not session.get('admin_logged_in'): return redirect(url_for('login'))
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('login'))
     clients = Client.query.all()
     return render_template('admin.html', clients=clients, now=datetime.now())
 
-# Add Detailed Client
 @app.route('/add-client', methods=['POST'])
 def add_client():
     new_c = Client(
@@ -79,14 +84,21 @@ def add_client():
     db.session.commit()
     return redirect(url_for('admin_dashboard'))
 
-# Generate Invoice/Receipt PDF
+@app.route('/update-client/<int:id>', methods=['POST'])
+def update_client(id):
+    client = Client.query.get(id)
+    client.progress = request.form.get('progress')
+    client.paid_amount = float(request.form.get('paid', 0))
+    db.session.commit()
+    return redirect(url_for('admin_dashboard'))
+
 @app.route('/download-invoice/<int:id>')
 def download_invoice(id):
     client = Client.query.get(id)
-    gst_amt = client.total_bill * 0.18 # 18% GST calculation
+    gst_amt = round(client.total_bill * 0.18, 2)
     grand_total = client.total_bill + gst_amt
-    data = {'client': client, 'gst': gst_amt, 'total': grand_total, 'date': datetime.now().strftime('%d-%m-%Y')}
-    pdf = render_pdf('invoice_pdf.html', data)
+    html = render_template('invoice_pdf.html', client=client, gst=gst_amt, total=grand_total, date=datetime.now().strftime('%d-%m-%Y'))
+    pdf = create_pdf(html)
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=Invoice_{client.name}.pdf'
@@ -98,4 +110,5 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
