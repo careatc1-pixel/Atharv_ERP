@@ -14,11 +14,11 @@ class Client(db.Model):
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    doc_no = db.Column(db.String(50), unique=True) # INV-001 or REC-001
+    doc_no = db.Column(db.String(50), unique=True)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     type = db.Column(db.String(20)) # 'Invoice' or 'Payment'
     amount = db.Column(db.Float)
     gst_amt = db.Column(db.Float, default=0.0)
     discount = db.Column(db.Float, default=0.0)
-    items_json = db.Column(db.Text) # Storing multi-services
+    items_json = db.Column(db.Text) 
     date = db.Column(db.DateTime, default=datetime.utcnow)
