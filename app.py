@@ -6,11 +6,12 @@ from fpdf import FPDF
 from io import BytesIO
 
 app = Flask(__name__)
-app.secret_key = "atharv_tech_client_module_2026"
+app.secret_key = "atharv_tech_fixed_2026"
 
-# Database
+# Database Configuration
 current_dir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(current_dir, 'atharv_erp.db'))
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 class Client(db.Model):
@@ -22,11 +23,13 @@ class Client(db.Model):
     address = db.Column(db.Text)
     gstin = db.Column(db.String(20))
 
-with app.app_context(): db.create_all()
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def index():
-    if not session.get('logged_in'): return render_template('login.html')
+    if not session.get('logged_in'):
+        return render_template('login.html')
     clients = Client.query.all()
     return render_template('admin.html', clients=clients)
 
@@ -35,8 +38,6 @@ def login():
     if request.form['email'] == "care.atc1@gmail.com" and request.form['password'] == "Atharv$321":
         session['logged_in'] = True
     return redirect(url_for('index'))
-
-# --- CLIENT ACTIONS ---
 
 @app.route('/add-client', methods=['POST'])
 def add_client():
@@ -64,7 +65,7 @@ def export_excel():
     df = pd.DataFrame(data)
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Clients')
+        df.to_excel(writer, index=False)
     output.seek(0)
     return send_file(output, as_attachment=True, download_name="Client_List.xlsx")
 
@@ -74,19 +75,13 @@ def export_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 14)
-    pdf.cell(190, 10, "ATHARV TECH CO. - CLIENT LIST", ln=True, align='C')
+    pdf.cell(190, 10, "CLIENT LIST", ln=True, align='C')
+    pdf.ln(5)
     pdf.set_font("Arial", 'B', 10)
-    pdf.cell(40, 10, "Company", border=1)
-    pdf.cell(40, 10, "Name", border=1)
-    pdf.cell(60, 10, "Email", border=1)
-    pdf.cell(50, 10, "Contact", border=1, ln=True)
+    pdf.cell(50, 10, "Company", 1); pdf.cell(50, 10, "Name", 1); pdf.cell(50, 10, "Contact", 1); pdf.cell(40, 10, "GSTIN", 1, ln=True)
     pdf.set_font("Arial", '', 9)
     for c in clients:
-        pdf.cell(40, 10, str(c.company)[:20], border=1)
-        pdf.cell(40, 10, str(c.name)[:20], border=1)
-        pdf.cell(60, 10, str(c.email), border=1)
-        pdf.cell(50, 10, str(c.contact), border=1, ln=True)
-    
+        pdf.cell(50, 10, str(c.company)[:25], 1); pdf.cell(50, 10, str(c.name)[:25], 1); pdf.cell(50, 10, str(c.contact), 1); pdf.cell(40, 10, str(c.gstin), 1, ln=True)
     out = BytesIO()
     pdf.output(out)
     out.seek(0)
@@ -98,4 +93,6 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Render automatically sets PORT environment variable
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
