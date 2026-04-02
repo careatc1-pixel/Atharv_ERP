@@ -10,18 +10,36 @@
         <a href="/" class="btn btn-outline-light btn-sm">Home</a>
     </nav>
     <div class="container">
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h5>Bulk Client Onboarding</h5>
-                <form action="/upload" method="POST" enctype="multipart/form-data" class="form-inline mt-3">
-                    <input type="file" name="file" class="form-control mr-2" required>
-                    <button type="submit" class="btn btn-primary">Upload Excel</button>
-                </form>
-                <p class="mt-2 text-muted small text-uppercase font-weight-bold">Columns Required: Name, Email, Project, Bill</p>
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5>1. Bulk Client Upload (Excel)</h5>
+                        <form action="/upload" method="POST" enctype="multipart/form-data" class="mt-3">
+                            <input type="file" name="file" class="form-control mb-2" required>
+                            <button type="submit" class="btn btn-primary btn-block">Upload Excel Sheet</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5>2. Add Single Client (Manual)</h5>
+                        <form action="/add-single" method="POST" class="row mt-3">
+                            <div class="col-6"><input type="text" name="name" class="form-control mb-2" placeholder="Client Name" required></div>
+                            <div class="col-6"><input type="email" name="email" class="form-control mb-2" placeholder="Email" required></div>
+                            <div class="col-6"><input type="text" name="project" class="form-control mb-2" placeholder="Project Name"></div>
+                            <div class="col-6"><input type="number" name="bill" class="form-control mb-2" placeholder="Total Bill"></div>
+                            <div class="col-12"><button type="submit" class="btn btn-success btn-block">Add Client Now</button></div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="card shadow">
+        <div class="card shadow mt-4">
             <div class="table-responsive">
                 <table class="table mb-0">
                     <thead class="bg-secondary text-white">
@@ -44,7 +62,7 @@
                                     Total: ₹{{ client.total_bill }}<br>
                                     Paid: <input type="number" name="paid" value="{{client.paid_amount}}" class="form-control w-75 d-inline">
                                 </td>
-                                <td><button type="submit" class="btn btn-sm btn-success">Update</button></td>
+                                <td><button type="submit" class="btn btn-sm btn-success">Save Update</button></td>
                             </form>
                         </tr>
                         {% endfor %}
