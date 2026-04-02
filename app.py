@@ -6,7 +6,6 @@ from routes_erp import erp_bp
 app = Flask(__name__)
 app.secret_key = "atharv_modular_pro_2026"
 
-# DB Config
 current_dir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(current_dir, 'atharv_erp.db'))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -21,7 +20,6 @@ with app.app_context():
 def index():
     if not session.get('logged_in'): return render_template('login.html')
     clients = Client.query.all()
-    # Ledger Logic
     cid = request.args.get('client_id')
     query = Transaction.query
     if cid: query = query.filter_by(client_id=cid)
