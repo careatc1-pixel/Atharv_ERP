@@ -1,26 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Project Status - Atharv Tech</title>
+    <title>My Dashboard - Atharv Tech</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 </head>
-<body class="bg-light py-5">
-    <div class="container">
-        <div class="card mx-auto shadow" style="max-width: 600px; border-radius: 20px;">
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-primary px-5">
+        <span class="navbar-brand">Atharv Tech Co. Client Portal</span>
+        <a href="/logout" class="btn btn-light btn-sm text-primary">Logout</a>
+    </nav>
+    <div class="container py-5">
+        <div class="card shadow border-0" style="border-radius: 20px;">
             <div class="card-body p-5">
-                <h2 class="text-center text-primary mb-4">Project Status</h2>
-                <h4>Hi, {{ client.name }}</h4>
-                <p class="text-muted">Aapke project ka current status neeche diya gaya hai:</p>
+                <div class="row">
+                    <div class="col-md-8">
+                        <h3>Welcome, {{ client.name }}!</h3>
+                        <p class="text-muted">Aapke project ki current details neeche hain.</p>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <span class="badge badge-info p-2">Status: In Progress</span>
+                    </div>
+                </div>
                 <hr>
-                <h5>Project: {{ client.project_name }}</h5>
-                <div class="progress my-4" style="height: 25px;">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{client.progress}}%">{{client.progress}}%</div>
+                <h5 class="mt-4">Project Name: <strong>{{ client.project_name }}</strong></h5>
+                
+                <div class="my-4">
+                    <label class="font-weight-bold text-dark">Overall Progress:</label>
+                    <div class="progress shadow-sm" style="height: 35px; border-radius: 10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: {{client.progress}}%">{{client.progress}}% Completed</div>
+                    </div>
                 </div>
-                <div class="row mt-4">
-                    <div class="col-6"><p class="mb-0">Total Bill:</p><h3>₹{{client.total_bill}}</h3></div>
-                    <div class="col-6 text-right"><p class="mb-0 text-success">Total Paid:</p><h3 class="text-success">₹{{client.paid_amount}}</h3></div>
+
+                <div class="row mt-5">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded bg-white">
+                            <p class="mb-0 text-muted small">Total Project Bill</p>
+                            <h2 class="text-dark">₹{{ client.total_bill }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded bg-success text-white">
+                            <p class="mb-0 small">Total Paid Amount</p>
+                            <h2>₹{{ client.paid_amount }}</h2>
+                        </div>
+                    </div>
                 </div>
-                <a href="/" class="btn btn-secondary btn-block mt-4">Back to Search</a>
+                <div class="mt-4 alert alert-warning text-center">
+                    <strong>Payment Reminder:</strong> Baki payment project completion se pehle clear karein.
+                </div>
             </div>
         </div>
     </div>
