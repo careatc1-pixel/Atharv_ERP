@@ -1,83 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>ATC ERP | Client Management</title>
+    <title>ATC ERP | Professional Billing</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-size: 13px; background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .sidebar { width: 220px; height: 100vh; position: fixed; background: #1a1a2e; color: white; padding: 20px; }
-        .main { margin-left: 220px; padding: 30px; }
-        .nav-link { color: #8e8e93; border-radius: 8px; margin-bottom: 5px; border:none; background:none; width:100%; text-align:left; }
+        body { font-size: 12px; background: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: 200px; height: 100vh; position: fixed; background: #1a1a2e; color: white; padding: 15px; }
+        .main { margin-left: 200px; padding: 25px; }
+        .nav-link { color: #8e8e93; font-size: 12px; padding: 10px; border-radius: 5px; border:none; background:none; width:100%; text-align:left; }
         .nav-link.active { background: #0d6efd; color: white !important; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .card { border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
-<div class="sidebar shadow">
-    <h5 class="text-info text-center mb-5">ATC ERP v3.0</h5>
+<div class="sidebar">
+    <h6 class="text-info text-center mb-4">ATC ERP v3.0</h6>
     <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
-        <button class="nav-link active"><i class="fas fa-users me-2"></i> Client Module</button>
-        <button class="nav-link text-muted" disabled><i class="fas fa-file-invoice me-2"></i> Billing (Locked)</button>
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-client"><i class="fas fa-users me-2"></i> Client Master</button>
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-billing"><i class="fas fa-file-invoice-dollar me-2"></i> Billing Module</button>
         <a href="/logout" class="nav-link text-danger mt-5"><i class="fas fa-power-off me-2"></i> Logout</a>
     </div>
 </div>
 
 <div class="main">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Client Master Control</h4>
-        <div>
-            <a href="/export-excel" class="btn btn-sm btn-outline-success me-2"><i class="fas fa-file-excel"></i> Excel Export</a>
-            <a href="/export-pdf" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf"></i> PDF Export</a>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-md-8">
-            <div class="card p-3">
-                <h6 class="mb-3 text-primary">Manual Registration</h6>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-client">
+            <h5>Client Management</h5>
+            <div class="card p-3 mb-3">
                 <form action="/add-client" method="POST" class="row g-2">
-                    <div class="col-md-4"><input type="text" name="company" class="form-control form-control-sm" placeholder="Company Name" required></div>
-                    <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="Contact Person"></div>
-                    <div class="col-md-4"><input type="email" name="email" class="form-control form-control-sm" placeholder="Email Address"></div>
-                    <div class="col-md-4"><input type="text" name="contact" class="form-control form-control-sm" placeholder="Phone No"></div>
-                    <div class="col-md-4"><input type="text" name="gst" class="form-control form-control-sm" placeholder="GST Number"></div>
-                    <div class="col-md-4"><input type="text" name="address" class="form-control form-control-sm" placeholder="Full Address"></div>
-                    <div class="col-12 mt-2"><button class="btn btn-sm btn-primary w-100 shadow-sm">Save Client to Database</button></div>
+                    <div class="col-md-3"><input type="text" name="company" class="form-control form-control-sm" placeholder="Company Name" required></div>
+                    <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" placeholder="Name"></div>
+                    <div class="col-md-3"><input type="email" name="email" class="form-control form-control-sm" placeholder="Email"></div>
+                    <div class="col-md-3"><input type="text" name="gst" class="form-control form-control-sm" placeholder="GSTIN"></div>
+                    <button class="btn btn-sm btn-primary mt-2">Add Client</button>
                 </form>
-            </div>
+             </div>
+             <div class="card p-2">
+                <table class="table table-sm table-hover">
+                    <thead class="table-dark"><tr><th>Company</th><th>GSTIN</th><th>Email</th></tr></thead>
+                    <tbody>{% for c in clients %}<tr><td>{{c.company}}</td><td>{{c.gstin}}</td><td>{{c.email}}</td></tr>{% endfor %}</tbody>
+                </table>
+             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card p-3 h-100">
-                <h6 class="mb-3 text-success">Bulk Excel Import</h6>
-                <form action="/bulk-upload" method="POST" enctype="multipart/form-data">
-                    <input type="file" name="file" class="form-control form-control-sm mb-3" required>
-                    <button class="btn btn-sm btn-dark w-100">Upload & Sync Data</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <div class="card p-2">
-        <div class="p-2 border-bottom mb-2 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Active Clients List</h6>
-            <span class="badge bg-info text-dark">Total Records: {{ clients|length }}</span>
+        <div class="tab-pane fade" id="tab-billing">
+            <h5>Professional Billing Console</h5>
+            <div class="card p-4 mb-4">
+                <form action="/generate-invoice" method="POST">
+                    <div class="row mb-3 g-2">
+                        <div class="col-md-6">
+                            <label>Select Client</label>
+                            <select name="client_id" class="form-select form-select-sm" required>
+                                {% for c in clients %}<option value="{{c.id}}">{{c.company}} ({{c.gstin}})</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3"><label>Discount (Rs)</label><input type="number" name="discount" class="form-control form-control-sm" value="0"></div>
+                    </div>
+                    
+                    <div id="service-rows">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" placeholder="Service Name" required></div>
+                            <div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" placeholder="Price" required></div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-xs btn-outline-secondary mb-3" onclick="addRow()">+ Add More Service</button>
+                    <button class="btn btn-sm btn-success d-block w-100 py-2">Generate & Auto-Download PDF Invoice</button>
+                </form>
+            </div>
+
+            <h6>Recent Invoices</h6>
+            <div class="card p-2">
+                <table class="table table-sm table-hover text-center">
+                    <thead><tr><th>Invoice No</th><th>Date</th><th>Total Amount</th><th>Action</th></tr></thead>
+                    <tbody>
+                        {% for inv in invoices %}
+                        <tr>
+                            <td>{{inv.invoice_no}}</td>
+                            <td>{{inv.date.strftime('%d-%m-%Y')}}</td>
+                            <td><strong>Rs. {{inv.grand_total}}</strong></td>
+                            <td><a href="/download-invoice/{{inv.id}}" class="btn btn-xs btn-outline-danger">Download PDF</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <table class="table table-sm table-hover align-middle mb-0 text-center">
-            <thead class="table-dark">
-                <tr><th>#</th><th>Company</th><th>Contact Name</th><th>Email ID</th><th>Phone</th><th>GSTIN</th></tr>
-            </thead>
-            <tbody>
-                {% for c in clients %}
-                <tr><td>{{ loop.index }}</td><td><strong>{{ c.company }}</strong></td><td>{{ c.name }}</td><td>{{ c.email }}</td><td>{{ c.contact }}</td><td>{{ c.gstin }}</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 </div>
 
+<script>
+function addRow() {
+    const div = document.createElement('div');
+    div.className = 'row g-2 mb-2';
+    div.innerHTML = `
+        <div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" placeholder="Service Name" required></div>
+        <div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" placeholder="Price" required></div>
+    `;
+    document.getElementById('service-rows').appendChild(div);
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
