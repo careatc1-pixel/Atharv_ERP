@@ -1,6 +1,0 @@
-flask
-pandas
-openpyxl
-flask-sqlalchemy
-gunicorn
-fpdf
