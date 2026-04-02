@@ -1,170 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atharv ERP v4.0 Pro</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --sidebar-width: 240px;
-            --accent: #38bdf8;
-            --text-muted: #94a3b8;
-        }
-        body { font-size: 12px; background: #f1f5f9; font-family: 'Inter', sans-serif; color: #1e293b; }
-        
-        /* Sidebar Styling */
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; background: var(--bg-dark); color: white; padding: 20px 15px; z-index: 100; transition: 0.3s; }
-        .sidebar h5 { font-size: 16px; font-weight: 700; color: var(--accent); letter-spacing: 1px; margin-bottom: 30px; }
-        .nav-link { color: var(--text-muted); font-size: 13px; padding: 12px 15px; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; border: none; background: none; width: 100%; text-align: left; }
-        .nav-link:hover { background: rgba(255,255,255,0.05); color: white; }
-        .nav-link.active { background: var(--accent); color: var(--bg-dark) !important; font-weight: 600; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4); }
-        
-        /* Main Content */
-        .main { margin-left: var(--sidebar-width); padding: 30px; min-height: 100vh; }
-        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        
-        /* Professional Cards */
-        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: white; margin-bottom: 20px; }
-        .card-header { background: transparent; border-bottom: 1px solid #f1f5f9; padding: 15px 20px; font-weight: 600; font-size: 14px; }
-        
-        /* Compact Tables */
-        .table { margin-bottom: 0; }
-        .table thead th { background: #f8fafc; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; color: #64748b; border-top: none; padding: 12px 10px; }
-        .table tbody td { padding: 10px; vertical-align: middle; border-color: #f1f5f9; }
-        
-        /* Inputs & Buttons */
-        .form-control-sm, .form-select-sm { border-radius: 6px; border: 1px solid #e2e8f0; padding: 8px 12px; }
-        .form-control:focus { border-color: var(--accent); box-shadow: none; }
-        .btn-primary { background: var(--accent); border: none; color: var(--bg-dark); font-weight: 600; }
-        .btn-primary:hover { background: #0ea5e9; }
-        
-        .badge-invoice { background: #dcfce7; color: #166534; font-size: 10px; }
-        .badge-payment { background: #fee2e2; color: #991b1b; font-size: 10px; }
-    </style>
-</head>
-<body>
-
-<div class="sidebar">
-    <h5 class="text-center"><i class="fas fa-cube me-2"></i>ATHARV TECH</h5>
-    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
-        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#t-client"><i class="fas fa-address-book me-3"></i> Client Master</button>
-        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#t-bill"><i class="fas fa-file-invoice-dollar me-3"></i> Billing Center</button>
-        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#t-pay"><i class="fas fa-hand-holding-usd me-3"></i> Payment Entry</button>
-        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#t-ledger"><i class="fas fa-chart-line me-3"></i> Ledger Report</button>
-        <div class="mt-auto pt-5">
-            <a href="/logout" class="nav-link text-danger"><i class="fas fa-sign-out-alt me-3"></i> Log Out</a>
-        </div>
+<div class="row g-3 mb-4 border-bottom pb-4">
+    <div class="col-md-5">
+        <label class="form-label fw-bold">Select Client</label>
+        <select name="client_id" class="form-select form-select-sm shadow-sm">
+            {% for c in clients %}<option value="{{c.id}}">{{c.company}}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label fw-bold">GST Slab (%)</label>
+        <select name="gst_rate" class="form-select form-select-sm shadow-sm text-primary fw-bold">
+            <option value="0">0% (Nil Rated)</option>
+            <option value="5">5% (Essentials)</option>
+            <option value="12">12% (Standard)</option>
+            <option value="18" selected>18% (Services/Standard)</option>
+            <option value="28">28% (Luxury)</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label fw-bold">Discount</label>
+        <input type="number" name="discount" class="form-control form-control-sm" value="0">
     </div>
 </div>
-
-<div class="main">
-    <div class="tab-content">
-        <div class="tab-pane fade show active" id="t-client">
-            <div class="header-bar">
-                <h4 class="fw-bold m-0">Client Management</h4>
-                <form action="/bulk-upload" method="POST" enctype="multipart/form-data" class="d-flex align-items-center bg-white p-2 rounded shadow-sm">
-                    <input type="file" name="file" class="form-control form-control-sm me-2" style="width: 200px;" required>
-                    <button class="btn btn-sm btn-dark"><i class="fas fa-upload me-1"></i> Sync Excel</button>
-                </form>
-            </div>
-            
-            <div class="card p-4 mb-4">
-                <p class="text-muted fw-bold mb-3"><i class="fas fa-plus-circle me-1"></i> REGISTER NEW CLIENT</p>
-                <form action="/add-client" method="POST" class="row g-3">
-                    <div class="col-md-3"><input type="text" name="company" class="form-control form-control-sm" placeholder="Company Name" required></div>
-                    <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" placeholder="Contact Person"></div>
-                    <div class="col-md-3"><input type="email" name="email" class="form-control form-control-sm" placeholder="Email Address"></div>
-                    <div class="col-md-3"><input type="text" name="contact" class="form-control form-control-sm" placeholder="Phone Number"></div>
-                    <div class="col-md-4"><input type="text" name="gst" class="form-control form-control-sm" placeholder="GSTIN (e.g. 22AAAAA0000A1Z5)"></div>
-                    <div class="col-md-5"><input type="text" name="address" class="form-control form-control-sm" placeholder="Full Office Address"></div>
-                    <div class="col-md-3"><button class="btn btn-sm btn-primary w-100 shadow-sm">Add Client</button></div>
-                </form>
-            </div>
-
-            <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>CLIENT DATABASE</span>
-                    <a href="/export-clients-excel" class="btn btn-xs btn-outline-success border-0"><i class="fas fa-file-excel me-1"></i> Download List</a>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead><tr><th>Company</th><th>Contact Person</th><th>Email</th><th>GSTIN</th><th>Address</th></tr></thead>
-                        <tbody>
-                            {% for c in clients %}
-                            <tr><td><strong>{{c.company}}</strong></td><td>{{c.name}}</td><td>{{c.email}}</td><td><code class="text-primary">{{c.gstin}}</code></td><td>{{c.address}}</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="t-bill">
-            <h4 class="fw-bold mb-4">Professional Billing</h4>
-            <div class="card p-4">
-                <form action="/create-invoice" method="POST">
-                    <div class="row g-3 mb-4 border-bottom pb-4">
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold">Select Client</label>
-                            <select name="client_id" class="form-select form-select-sm shadow-sm">
-                                {% for c in clients %}<option value="{{c.id}}">{{c.company}} ({{c.gstin}})</option>{% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Discount (INR)</label>
-                            <input type="number" name="discount" class="form-control form-control-sm shadow-sm" value="0">
-                        </div>
-                    </div>
-                    <div id="service-list">
-                        <div class="row g-2 mb-2 align-items-end">
-                            <div class="col-md-8"><label class="form-label text-muted">Service/Project Description</label><input type="text" name="service[]" class="form-control form-control-sm" required></div>
-                            <div class="col-md-3"><label class="form-label text-muted">Price</label><input type="number" name="price[]" class="form-control form-control-sm" required></div>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-xs btn-outline-secondary mt-2" onclick="addMoreItems()"><i class="fas fa-plus me-1"></i> Add Another Service</button>
-                    <hr>
-                    <button class="btn btn-sm btn-success px-5 py-2 float-end shadow"><i class="fas fa-check-circle me-2"></i> GENERATE GST INVOICE</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="t-ledger">
-            <h4 class="fw-bold mb-4">Account Ledger</h4>
-            <div class="card shadow-sm overflow-hidden">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light"><tr><th>Date</th><th>Document No.</th><th>Type</th><th>Client Name</th><th>Debit (Dr)</th><th>Credit (Cr)</th><th>Action</th></tr></thead>
-                        <tbody>
-                            {% for t in txs %}
-                            <tr>
-                                <td>{{t.date.strftime('%d-%m-%Y')}}</td>
-                                <td><span class="badge bg-light text-dark border">{{t.doc_no}}</span></td>
-                                <td><span class="badge {{'badge-invoice' if t.type == 'Invoice' else 'badge-payment'}} px-2">{{t.type}}</span></td>
-                                <td>{{t.client_id}}</td> <td class="text-danger">{% if t.type == 'Invoice' %}₹ {{t.amount}}{% endif %}</td>
-                                <td class="text-success">{% if t.type == 'Payment' %}₹ {{t.amount}}{% endif %}</td>
-                                <td><a href="/download-pdf/{{t.id}}" class="btn btn-sm btn-light py-0 px-2 border"><i class="fas fa-file-pdf text-danger"></i></a></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    function addMoreItems() {
-        const wrapper = document.getElementById('service-list');
-        const row = document.createElement('div');
-        row.className = 'row g-2 mb-2 fade-in';
-        row.innerHTML = '<div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" required></div><div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" required></div>';
-        wrapper.appendChild(row);
-    }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
