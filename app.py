@@ -5,9 +5,9 @@ from fpdf import FPDF
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "atharv_tech_final_safe_key"
+app.secret_key = "atharv_tech_2026_super_key"
 
-# Database Configuration
+# Database Config
 current_dir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(current_dir, 'atharv_erp.db'))
 if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
@@ -16,10 +16,10 @@ if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Client Model
+# Database Table
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100))
     company_name = db.Column(db.String(150))
     contact = db.Column(db.String(20))
     email = db.Column(db.String(100), unique=True)
@@ -37,7 +37,8 @@ ADMIN_EMAIL = "care.atc1@gmail.com"
 ADMIN_PASSWORD = "Atharv$321"
 
 @app.route('/')
-def index(): return render_template('index.html')
+def index():
+    return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -46,6 +47,21 @@ def login():
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
     return render_template('login.html')
+
+@app.route('/client-login', methods=['POST'])
+def client_login():
+    email = request.form.get('email')
+    client = Client.query.filter_by(email=email).first()
+    if client:
+        session['client_id'] = client.id
+        return redirect(url_for('client_view'))
+    return "<h3>Email Not Found!</h3><a href='/'>Back</a>"
+
+@app.route('/client-view')
+def client_view():
+    if 'client_id' not in session: return redirect(url_for('index'))
+    client = Client.query.get(session['client_id'])
+    return render_template('client_view.html', client=client)
 
 @app.route('/admin')
 def admin_dashboard():
@@ -56,14 +72,10 @@ def admin_dashboard():
 @app.route('/add-client', methods=['POST'])
 def add_client():
     new_c = Client(
-        name=request.form.get('name'),
-        company_name=request.form.get('company'),
-        contact=request.form.get('contact'),
-        email=request.form.get('email'),
-        address=request.form.get('address'),
-        project_name=request.form.get('project'),
-        total_bill=float(request.form.get('bill', 0)),
-        gst_number=request.form.get('gst', 'N/A')
+        name=request.form.get('name'), company_name=request.form.get('company'),
+        contact=request.form.get('contact'), email=request.form.get('email'),
+        address=request.form.get('address'), project_name=request.form.get('project'),
+        total_bill=float(request.form.get('bill', 0)), gst_number=request.form.get('gst', 'N/A')
     )
     db.session.add(new_c)
     db.session.commit()
@@ -80,26 +92,23 @@ def update_client(id):
 @app.route('/download-invoice/<int:id>')
 def download_invoice(id):
     client = Client.query.get(id)
-    gst_amt = round(client.total_bill * 0.18, 2)
-    grand_total = client.total_bill + gst_amt
-    
-    # FPDF logic to create Invoice
+    gst = round(client.total_bill * 0.18, 2)
+    total = client.total_bill + gst
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, "TAX INVOICE - Atharv Tech Co.", ln=True, align='C')
+    pdf.cell(200, 10, "TAX INVOICE - ATHARV TECH CO.", ln=True, align='C')
     pdf.ln(10)
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, f"Client: {client.company_name}", ln=True)
-    pdf.cell(200, 10, f"Address: {client.address}", ln=True)
+    pdf.cell(100, 10, f"To: {client.company_name}")
+    pdf.cell(100, 10, f"Date: {datetime.now().strftime('%d-%m-%Y')}", ln=True, align='R')
     pdf.cell(200, 10, f"GSTIN: {client.gst_number}", ln=True)
-    pdf.ln(10)
+    pdf.ln(5)
     pdf.cell(200, 10, f"Project: {client.project_name}", ln=True)
     pdf.cell(200, 10, f"Base Amount: Rs. {client.total_bill}", ln=True)
-    pdf.cell(200, 10, f"GST (18%): Rs. {gst_amt}", ln=True)
+    pdf.cell(200, 10, f"GST (18%): Rs. {gst}", ln=True)
     pdf.set_font("Arial", 'B', 14)
-    pdf.cell(200, 10, f"Total Amount: Rs. {grand_total}", ln=True)
-    
+    pdf.cell(200, 10, f"Grand Total: Rs. {total}", ln=True)
     response = make_response(pdf.output(dest='S').encode('latin-1'))
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=Invoice_{client.name}.pdf'
