@@ -5,37 +5,32 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
-    <nav class="navbar navbar-dark bg-dark mb-4">
+    <nav class="navbar navbar-dark bg-dark mb-4 px-5">
         <span class="navbar-brand">Atharv Tech Co. Admin Panel</span>
-        <a href="/" class="btn btn-outline-light btn-sm">Home</a>
+        <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
     </nav>
     <div class="container">
         <div class="row">
             <div class="col-md-5">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5>1. Bulk Client Upload (Excel)</h5>
-                        <form action="/upload" method="POST" enctype="multipart/form-data" class="mt-3">
-                            <input type="file" name="file" class="form-control mb-2" required>
-                            <button type="submit" class="btn btn-primary btn-block">Upload Excel Sheet</button>
-                        </form>
-                    </div>
-                </div>
+                <div class="card shadow-sm mb-4"><div class="card-body">
+                    <h5>1. Bulk Client Upload (Excel)</h5>
+                    <form action="/upload" method="POST" enctype="multipart/form-data" class="mt-3">
+                        <input type="file" name="file" class="form-control mb-2" required>
+                        <button type="submit" class="btn btn-primary btn-block">Upload Excel</button>
+                    </form>
+                </div></div>
             </div>
-
             <div class="col-md-7">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body">
-                        <h5>2. Add Single Client (Manual)</h5>
-                        <form action="/add-single" method="POST" class="row mt-3">
-                            <div class="col-6"><input type="text" name="name" class="form-control mb-2" placeholder="Client Name" required></div>
-                            <div class="col-6"><input type="email" name="email" class="form-control mb-2" placeholder="Email" required></div>
-                            <div class="col-6"><input type="text" name="project" class="form-control mb-2" placeholder="Project Name"></div>
-                            <div class="col-6"><input type="number" name="bill" class="form-control mb-2" placeholder="Total Bill"></div>
-                            <div class="col-12"><button type="submit" class="btn btn-success btn-block">Add Client Now</button></div>
-                        </form>
-                    </div>
-                </div>
+                <div class="card shadow-sm mb-4"><div class="card-body">
+                    <h5>2. Add Single Client (Manual)</h5>
+                    <form action="/add-single" method="POST" class="row mt-3">
+                        <div class="col-6"><input type="text" name="name" class="form-control mb-2" placeholder="Name" required></div>
+                        <div class="col-6"><input type="email" name="email" class="form-control mb-2" placeholder="Email" required></div>
+                        <div class="col-6"><input type="text" name="project" class="form-control mb-2" placeholder="Project"></div>
+                        <div class="col-6"><input type="number" name="bill" class="form-control mb-2" placeholder="Bill"></div>
+                        <div class="col-12"><button type="submit" class="btn btn-success btn-block">Add Client</button></div>
+                    </form>
+                </div></div>
             </div>
         </div>
 
@@ -43,13 +38,7 @@
             <div class="table-responsive">
                 <table class="table mb-0">
                     <thead class="bg-secondary text-white">
-                        <tr>
-                            <th>Client / Email</th>
-                            <th>Project Name</th>
-                            <th>Progress %</th>
-                            <th>Bill Status</th>
-                            <th>Action</th>
-                        </tr>
+                        <tr><th>Client</th><th>Project</th><th>Progress %</th><th>Bill Status</th><th>Action</th></tr>
                     </thead>
                     <tbody>
                         {% for client in clients %}
@@ -58,11 +47,8 @@
                                 <td><strong>{{ client.name }}</strong><br><small>{{ client.email }}</small></td>
                                 <td>{{ client.project_name }}</td>
                                 <td><input type="number" name="progress" value="{{client.progress}}" class="form-control w-75" max="100"></td>
-                                <td>
-                                    Total: ₹{{ client.total_bill }}<br>
-                                    Paid: <input type="number" name="paid" value="{{client.paid_amount}}" class="form-control w-75 d-inline">
-                                </td>
-                                <td><button type="submit" class="btn btn-sm btn-success">Save Update</button></td>
+                                <td>₹{{ client.total_bill }} / Paid: ₹<input type="number" name="paid" value="{{client.paid_amount}}" class="form-control w-75 d-inline"></td>
+                                <td><button type="submit" class="btn btn-sm btn-success">Save</button></td>
                             </form>
                         </tr>
                         {% endfor %}
