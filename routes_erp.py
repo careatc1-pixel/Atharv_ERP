@@ -8,7 +8,6 @@ from datetime import datetime
 
 erp_bp = Blueprint('erp', __name__)
 
-# --- CLIENT MODULE (UPDATED WITH EXCEL) ---
 @erp_bp.route('/add-client', methods=['POST'])
 def add_client():
     c = Client(company=request.form.get('company'), name=request.form.get('name'), 
@@ -24,16 +23,11 @@ def bulk_upload():
     if file:
         df = pd.read_excel(file)
         for _, row in df.iterrows():
-            # Duplicate check by email
-            if not Client.query.filter_by(email=str(row.get('Email'))).first():
-                c = Client(
-                    company=str(row.get('Company')), 
-                    name=str(row.get('Name')), 
-                    contact=str(row.get('Contact')), 
-                    email=str(row.get('Email')), 
-                    address=str(row.get('Address')), 
-                    gstin=str(row.get('GSTIN'))
-                )
+            email = str(row.get('Email', ''))
+            if email and not Client.query.filter_by(email=email).first():
+                c = Client(company=str(row.get('Company', 'N/A')), name=str(row.get('Name', '')), 
+                           contact=str(row.get('Contact', '')), email=email, 
+                           address=str(row.get('Address', '')), gstin=str(row.get('GSTIN', '')))
                 db.session.add(c)
         db.session.commit()
     return redirect(url_for('index'))
@@ -41,18 +35,14 @@ def bulk_upload():
 @erp_bp.route('/export-clients')
 def export_clients():
     clients = Client.query.all()
-    data = []
-    for c in clients:
-        data.append({"Company": c.company, "Name": c.name, "Contact": c.contact, "Email": c.email, "GSTIN": c.gstin, "Address": c.address})
-    
+    data = [{"Company": c.company, "Name": c.name, "Contact": c.contact, "Email": c.email, "GSTIN": c.gstin, "Address": c.address} for c in clients]
     df = pd.DataFrame(data)
     out = BytesIO()
     with pd.ExcelWriter(out, engine='openpyxl') as writer:
         df.to_excel(writer, index=False)
     out.seek(0)
-    return send_file(out, as_attachment=True, download_name="ATC_Client_Master.xlsx")
+    return send_file(out, as_attachment=True, download_name="ATC_Clients.xlsx")
 
-# --- BILLING MODULE (SAME AS BEFORE) ---
 @erp_bp.route('/create-invoice', methods=['POST'])
 def create_invoice():
     client_id = request.form['client_id']
@@ -89,21 +79,17 @@ def download_pdf(tid):
     pdf.set_fill_color(26, 26, 46); pdf.rect(0, 0, 210, 40, 'F')
     pdf.set_text_color(255, 255, 255); pdf.set_font("Arial", 'B', 20)
     pdf.cell(190, 20, "ATHARV TECH CO.", ln=True, align='C')
-    pdf.set_text_color(0, 0, 0); pdf.ln(20); pdf.set_font("Arial", 'B', 12)
+    pdf.set_text_color(0, 0, 0); pdf.ln(20); pdf.set_font("Arial", 'B', 11)
     pdf.cell(100, 10, f"INVOICE: {t.doc_no}"); pdf.cell(90, 10, f"DATE: {t.date.strftime('%d-%m-%Y')}", ln=True, align='R')
-    pdf.ln(10); pdf.set_font("Arial", 'B', 10); pdf.cell(100, 5, f"BILL TO: {c.company}"); pdf.ln(5)
+    pdf.ln(5); pdf.set_font("Arial", 'B', 10); pdf.cell(100, 5, f"BILL TO: {c.company}"); pdf.ln(5)
     pdf.set_font("Arial", '', 10); pdf.cell(100, 5, f"GSTIN: {c.gstin}"); pdf.ln(10)
-    
     pdf.set_fill_color(240, 240, 240); pdf.cell(140, 10, " Description", 1, 0, 'L', True); pdf.cell(50, 10, " Amt", 1, 1, 'R', True)
     for i in items:
         pdf.cell(140, 10, f" {i['desc']}", 1); pdf.cell(50, 10, f" {i['amt']} ", 1, 1, 'R')
-    
     pdf.ln(5); pdf.cell(140, 8, f"GST ({rate}%):", align='R'); pdf.cell(50, 8, f"{t.gst_amt}", ln=True, align='R')
     pdf.set_font("Arial", 'B', 12); pdf.cell(140, 10, "TOTAL AMOUNT:", align='R'); pdf.cell(50, 10, f"Rs. {t.amount}", ln=True, align='R')
-    
     if t.narration:
-        pdf.ln(10); pdf.set_font("Arial", 'B', 9); pdf.cell(190, 5, "Note:", ln=True)
+        pdf.ln(10); pdf.set_font("Arial", 'B', 9); pdf.cell(190, 5, "Narration:", ln=True)
         pdf.set_font("Arial", '', 9); pdf.multi_cell(190, 5, t.narration)
-        
     out = BytesIO(); pdf.output(out); out.seek(0)
     return send_file(out, as_attachment=True, download_name=f"{t.doc_no}.pdf", mimetype='application/pdf')
