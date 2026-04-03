@@ -8,6 +8,7 @@ from datetime import datetime
 
 erp_bp = Blueprint('erp', __name__)
 
+# --- CLIENT MODULE (UPDATED WITH EXCEL) ---
 @erp_bp.route('/add-client', methods=['POST'])
 def add_client():
     c = Client(company=request.form.get('company'), name=request.form.get('name'), 
@@ -17,6 +18,41 @@ def add_client():
     db.session.commit()
     return redirect(url_for('index'))
 
+@erp_bp.route('/bulk-upload', methods=['POST'])
+def bulk_upload():
+    file = request.files['file']
+    if file:
+        df = pd.read_excel(file)
+        for _, row in df.iterrows():
+            # Duplicate check by email
+            if not Client.query.filter_by(email=str(row.get('Email'))).first():
+                c = Client(
+                    company=str(row.get('Company')), 
+                    name=str(row.get('Name')), 
+                    contact=str(row.get('Contact')), 
+                    email=str(row.get('Email')), 
+                    address=str(row.get('Address')), 
+                    gstin=str(row.get('GSTIN'))
+                )
+                db.session.add(c)
+        db.session.commit()
+    return redirect(url_for('index'))
+
+@erp_bp.route('/export-clients')
+def export_clients():
+    clients = Client.query.all()
+    data = []
+    for c in clients:
+        data.append({"Company": c.company, "Name": c.name, "Contact": c.contact, "Email": c.email, "GSTIN": c.gstin, "Address": c.address})
+    
+    df = pd.DataFrame(data)
+    out = BytesIO()
+    with pd.ExcelWriter(out, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+    out.seek(0)
+    return send_file(out, as_attachment=True, download_name="ATC_Client_Master.xlsx")
+
+# --- BILLING MODULE (SAME AS BEFORE) ---
 @erp_bp.route('/create-invoice', methods=['POST'])
 def create_invoice():
     client_id = request.form['client_id']
