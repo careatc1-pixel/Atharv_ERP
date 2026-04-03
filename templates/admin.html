@@ -2,65 +2,131 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ATC ERP v4.0 Pro</title>
+    <title>ATC ERP Pro v5.0</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-navy: #1e1e2f; --accent: #4cc9f0; }
-        body { font-size: 12px; background: #f4f4f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { width: 220px; height: 100vh; position: fixed; background: var(--bg-navy); color: white; padding: 20px 15px; }
-        .nav-link { color: #a0a0b8; padding: 12px; border-radius: 8px; margin-bottom: 5px; border:none; background:none; width:100%; text-align:left; }
-        .nav-link.active { background: var(--accent); color: white !important; font-weight: 600; }
+        :root { --bg-navy: #111827; --accent: #38bdf8; }
+        body { font-size: 11.5px; background: #f9fafb; font-family: 'Inter', sans-serif; color: #1f2937; }
+        .sidebar { width: 220px; height: 100vh; position: fixed; background: var(--bg-navy); color: white; padding: 25px 15px; }
+        .sidebar h5 { font-size: 16px; color: var(--accent); font-weight: 700; text-align: center; margin-bottom: 30px; letter-spacing: 1px; }
+        .nav-link { color: #9ca3af; padding: 10px 15px; border-radius: 8px; margin-bottom: 5px; border:none; background:none; width:100%; text-align:left; transition: 0.3s; }
+        .nav-link:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-link.active { background: var(--accent); color: #000 !important; font-weight: 600; }
         .main { margin-left: 220px; padding: 30px; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .table thead th { background: #f3f4f6; text-transform: uppercase; font-size: 10px; color: #6b7280; padding: 12px; }
     </style>
 </head>
 <body>
+
 <div class="sidebar">
-    <h5 class="text-info text-center mb-5 font-weight-bold">ATC ERP PRO</h5>
+    <h5>ATHARV TECH</h5>
     <div class="nav flex-column nav-pills">
         <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#t-client"><i class="fas fa-users me-2"></i> Client Master</button>
         <button class="nav-link" data-bs-toggle="pill" data-bs-target="#t-bill"><i class="fas fa-file-invoice me-2"></i> Billing Console</button>
         <button class="nav-link" data-bs-toggle="pill" data-bs-target="#t-ledger"><i class="fas fa-book me-2"></i> History Ledger</button>
-        <a href="/logout" class="nav-link text-danger mt-5"><i class="fas fa-power-off me-2"></i> Logout</a>
+        <a href="/logout" class="nav-link text-danger mt-5"><i class="fas fa-power-off me-2"></i> Logout Admin</a>
     </div>
 </div>
+
 <div class="main">
     <div class="tab-content">
         <div class="tab-pane fade show active" id="t-client">
-            <div class="d-flex justify-content-between mb-3"><h4>Client Master</h4>
-                <form action="/bulk-upload" method="POST" enctype="multipart/form-data" class="d-flex"><input type="file" name="file" class="form-control form-control-sm me-2" required><button class="btn btn-sm btn-dark">Bulk Upload</button></form>
+            <div class="d-flex justify-content-between mb-4 align-items-center">
+                <h5 class="m-0 fw-bold">Client Onboarding</h5>
+                <form action="/bulk-upload" method="POST" enctype="multipart/form-data" class="d-flex bg-white p-2 rounded shadow-sm border">
+                    <input type="file" name="file" class="form-control form-control-sm me-2" required>
+                    <button class="btn btn-sm btn-dark">Sync Excel</button>
+                </form>
             </div>
-            <div class="card p-3 mb-3"><form action="/add-client" method="POST" class="row g-2">
-                <div class="col-md-4"><input type="text" name="company" class="form-control form-control-sm" placeholder="Company Name" required></div>
-                <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="Contact Person"></div>
-                <div class="col-md-4"><input type="email" name="email" class="form-control form-control-sm" placeholder="Email"></div>
-                <div class="col-md-4"><input type="text" name="gst" class="form-control form-control-sm" placeholder="GSTIN"></div>
-                <div class="col-md-4"><input type="text" name="address" class="form-control form-control-sm" placeholder="Address"></div>
-                <div class="col-md-4"><button class="btn btn-sm btn-primary w-100">Save Client</button></div>
-            </form></div>
-            <div class="card p-2"><table class="table table-sm table-hover"><thead><tr class="table-dark"><th>Company</th><th>Person</th><th>GSTIN</th><th>Email</th></tr></thead>
-                <tbody>{% for c in clients %}<tr><td>{{c.company}}</td><td>{{c.name}}</td><td>{{c.gstin}}</td><td>{{c.email}}</td></tr>{% endfor %}</tbody></table></div>
+            <div class="card p-3 mb-4">
+                <p class="text-muted small fw-bold mb-3">MANUAL ADDITION</p>
+                <form action="/add-client" method="POST" class="row g-2">
+                    <div class="col-md-4"><input type="text" name="company" class="form-control form-control-sm" placeholder="Company Name*" required></div>
+                    <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="Contact Person"></div>
+                    <div class="col-md-4"><input type="email" name="email" class="form-control form-control-sm" placeholder="Email Address"></div>
+                    <div class="col-md-3"><input type="text" name="contact" class="form-control form-control-sm" placeholder="Phone Number"></div>
+                    <div class="col-md-3"><input type="text" name="gst" class="form-control form-control-sm" placeholder="GSTIN (Optional)"></div>
+                    <div class="col-md-4"><input type="text" name="address" class="form-control form-control-sm" placeholder="Full Address"></div>
+                    <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">Add Client</button></div>
+                </form>
+            </div>
+            <div class="card overflow-hidden">
+                <table class="table table-sm table-hover mb-0">
+                    <thead><tr><th>#</th><th>Company</th><th>Person</th><th>Email</th><th>GSTIN</th></tr></thead>
+                    <tbody>
+                        {% for c in clients %}
+                        <tr><td>{{loop.index}}</td><td><strong>{{c.company}}</strong></td><td>{{c.name}}</td><td>{{c.email}}</td><td><code>{{c.gstin}}</code></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+
         <div class="tab-pane fade" id="t-bill">
-            <h4>GST Billing</h4>
-            <div class="card p-4"><form action="/create-invoice" method="POST">
-                <div class="row g-2 mb-3"><div class="col-md-5"><select name="client_id" class="form-select form-select-sm">{% for c in clients %}<option value="{{c.id}}">{{c.company}}</option>{% endfor %}</select></div>
-                <div class="col-md-3"><select name="gst_rate" class="form-select form-select-sm"><option value="5">5% GST</option><option value="12">12% GST</option><option value="18" selected>18% GST</option><option value="28">28% GST</option></select></div>
-                <div class="col-md-2"><input type="number" name="discount" class="form-control form-control-sm" placeholder="Discount"></div></div>
-                <div id="services"><div class="row g-2 mb-2"><div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" placeholder="Service" required></div><div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" placeholder="Price" required></div></div></div>
-                <button type="button" class="btn btn-xs btn-outline-secondary mb-3" onclick="addRow()">+ Add Row</button>
-                <button class="btn btn-sm btn-success w-100">Generate & Download Invoice</button></form></div>
+            <h5 class="mb-4 fw-bold">GST Billing Center</h5>
+            <div class="card p-4">
+                <form action="/create-invoice" method="POST">
+                    <div class="row g-3 mb-4 border-bottom pb-4">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Select Client</label>
+                            <select name="client_id" class="form-select form-select-sm">
+                                {% for c in clients %}<option value="{{c.id}}">{{c.company}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">GST Slab (%)</label>
+                            <select name="gst_rate" class="form-select form-select-sm text-primary fw-bold">
+                                <option value="0">0% (Nil)</option>
+                                <option value="5">5%</option>
+                                <option value="12">12%</option>
+                                <option value="18" selected>18% (Standard)</option>
+                                <option value="28">28%</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Discount (Rs)</label>
+                            <input type="number" name="discount" class="form-control form-control-sm" value="0">
+                        </div>
+                    </div>
+                    <div id="service-list">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" placeholder="Service / Item Description" required></div>
+                            <div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" placeholder="Price" required></div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-xs btn-outline-secondary mt-2 mb-3" onclick="addRow()">+ Add More Items</button>
+                    <button class="btn btn-sm btn-success w-100 py-2 shadow">Generate & Download Invoice</button>
+                </form>
+            </div>
         </div>
+
         <div class="tab-pane fade" id="t-ledger">
-            <h4>Transaction History</h4>
-            <div class="card p-2"><table class="table table-sm table-hover"><thead><tr class="table-dark"><th>Date</th><th>Doc No</th><th>Type</th><th>Total</th><th>Action</th></tr></thead>
-                <tbody>{% for t in txs %}<tr><td>{{t.date.strftime('%d-%m-%Y')}}</td><td>{{t.doc_no}}</td><td>{{t.type}}</td><td>₹{{t.amount}}</td><td><a href="/download-pdf/{{t.id}}" class="btn btn-xs btn-outline-danger">PDF</a></td></tr>{% endfor %}</tbody></table></div>
+            <h5 class="mb-4 fw-bold">Transaction Ledger</h5>
+            <div class="card overflow-hidden">
+                <table class="table table-sm table-hover mb-0 align-middle text-center">
+                    <thead class="table-dark"><tr><th>Date</th><th>Invoice No.</th><th>Total Amount</th><th>Action</th></tr></thead>
+                    <tbody>
+                        {% for t in txs %}
+                        <tr><td>{{t.date.strftime('%d-%m-%Y')}}</td><td>{{t.doc_no}}</td><td><strong>₹ {{t.amount}}</strong></td>
+                            <td><a href="/download-pdf/{{t.id}}" class="btn btn-xs btn-outline-danger px-3">PDF</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
 <script>
-function addRow() { const div = document.createElement('div'); div.className = 'row g-2 mb-2'; div.innerHTML = '<div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" placeholder="Service" required></div><div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" placeholder="Price" required></div>'; document.getElementById('services').appendChild(div); }
+    function addRow() {
+        const div = document.createElement('div'); div.className = 'row g-2 mb-2';
+        div.innerHTML = `<div class="col-md-8"><input type="text" name="service[]" class="form-control form-control-sm" placeholder="Service / Item Description" required></div>
+                         <div class="col-md-3"><input type="number" name="price[]" class="form-control form-control-sm" placeholder="Price" required></div>`;
+        document.getElementById('service-list').appendChild(div);
+    }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
