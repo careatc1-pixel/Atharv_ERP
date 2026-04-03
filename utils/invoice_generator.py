@@ -12,7 +12,6 @@ def generate_invoice(invoice_id, client_name, items, total, gst):
     c.setFont("Helvetica", 10)
     c.drawString(30, 770, f"Invoice No: {invoice_id}")
     c.drawString(30, 755, f"Date: {datetime.now().strftime('%d-%m-%Y')}")
-
     c.drawString(30, 730, f"Client: {client_name}")
 
     y = 700
