@@ -16,7 +16,7 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     doc_no = db.Column(db.String(50), unique=True)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
-    type = db.Column(db.String(20)) # Invoice / Payment
+    type = db.Column(db.String(20))
     amount = db.Column(db.Float)
     gst_amt = db.Column(db.Float, default=0.0)
     discount = db.Column(db.Float, default=0.0)
